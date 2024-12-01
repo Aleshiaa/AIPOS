@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Book</title>
+</head>
+<body>
+    <h1>Edit Book</h1>
+    <form method="POST">
+        <label for="title">Title:</label>
+        <input type="text" id="title" name="title" value="{{ book.title }}" required>
+        <br>
+        <label for="author_id">Author:</label>
+        <select id="author_id" name="author_id">
+            {% for author in authors %}
+                <option value="{{ author.id }}" {% if author.id == book.author_id %}selected{% endif %}>{{ author.name }}</option>
+            {% endfor %}
+        </select>
+        <br>
+        <label for="category_id">Category:</label>
+        <select id="category_id" name="category_id">
+            {% for category in categories %}
+                <option value="{{ category.id }}" {% if category.id == book.category_id %}selected{% endif %}>{{ category.name }}</option>
+            {% endfor %}
+        </select>
+        <br>
+        <label for="publisher_id">Publisher:</label>
+        <select id="publisher_id" name="publisher_id">
+            {% for publisher in publishers %}
+                <option value="{{ publisher.id }}" {% if publisher.id == book.publisher_id %}selected{% endif %}>{{ publisher.name }}</option>
+            {% endfor %}
+        </select>
+        <br>
+        <button type="submit">Update Book</button>
+    </form>
+    <a href="{{ url_for('index') }}">Back to Books</a>
+</body>
+</html>

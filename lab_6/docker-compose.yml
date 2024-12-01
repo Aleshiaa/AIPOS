@@ -1,0 +1,23 @@
+version: '3.8'
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:12345678@db:5432/aipos
+    depends_on:
+      - db
+    volumes:
+      - ./access.log:/app/access.log
+
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345678
+      POSTGRES_DB: aipos
+    volumes:
+      - db_data:/var/lib/postgresql/data
+volumes:
+  db_data:
