@@ -1,0 +1,35 @@
+version: '3.8'
+services:
+  html_server:
+    build:
+      context: .
+      dockerfile: Dockerfile-html-server
+    ports:
+      - "5002:5002"
+    environment:
+      - API_BASE_URL=http://rest_api:5001
+    depends_on:
+      - rest_api
+
+  rest_api:
+    build:
+      context: .
+      dockerfile: Dockerfile-rest-api
+    ports:
+      - "5001:5001"
+    environment:
+      - DATABASE_URL=postgresql://postgres:12345678@db:5432/aipos
+    depends_on:
+      - db
+
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345678
+      POSTGRES_DB: aipos
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+volumes:
+  db_data:

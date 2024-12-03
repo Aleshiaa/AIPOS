@@ -1,0 +1,15 @@
+FROM python:3.10-slim
+
+RUN pip install --no-cache-dir flask requests
+
+WORKDIR /app
+
+COPY html_server.py /app
+
+COPY templates /app/templates
+
+COPY static /app/static
+
+EXPOSE 5002
+
+CMD ["python", "html_server.py"]
