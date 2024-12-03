@@ -65,48 +65,83 @@ def log_response_info(response):
 def index():
     books = Book.query.all()
     app.logger.info(f"Loaded {len(books)} books for the main page.")
-    return render_template('index.html', books=books)
-
-
-@app.route('/add_book', methods=['GET', 'POST'])
-def add_book():
-    if request.method == 'POST':
-        title = request.form['title']
-        author_id = request.form['author_id']
-        category_id = request.form['category_id']
-        publisher_id = request.form['publisher_id']
-
-        new_book = Book(title=title, author_id=author_id, category_id=category_id, publisher_id=publisher_id)
-        db.session.add(new_book)
-        db.session.commit()
-        app.logger.info(f"Added book: {title} with author_id {author_id}, category_id {category_id}, publisher_id {publisher_id}.")
-        return redirect(url_for('index'))
-
     authors = Author.query.all()
     categories = Category.query.all()
     publishers = Publisher.query.all()
-    app.logger.info("Rendering add_book page.")
-    return render_template('add_book.html', authors=authors, categories=categories, publishers=publishers)
+    return render_template('index.html', books=books, authors=authors, categories=categories, publishers=publishers)
 
 
-@app.route('/edit_book/<int:id>', methods=['GET', 'POST'])
-def edit_book(id):
-    book = Book.query.get_or_404(id)
+@app.route('/edit_or_add/<entity>/<int:id>', methods=['GET', 'POST'])
+@app.route('/edit_or_add/<entity>', methods=['GET', 'POST'])
+def edit_or_add_entity(entity, id=None):
+    is_edit = id is not None
+    if entity == 'book':
+        entity_name = 'Book'
+        fields = [
+            {'id': 'title', 'name': 'title', 'label': 'Title', 'type': 'text'},
+            {'id': 'author_id', 'name': 'author_id', 'label': 'Author', 'type': 'select',
+             'options': [{'id': a.id, 'name': a.name} for a in Author.query.all()]},
+            {'id': 'category_id', 'name': 'category_id', 'label': 'Category', 'type': 'select',
+             'options': [{'id': c.id, 'name': c.name} for c in Category.query.all()]},
+            {'id': 'publisher_id', 'name': 'publisher_id', 'label': 'Publisher', 'type': 'select',
+             'options': [{'id': p.id, 'name': p.name} for p in Publisher.query.all()]},
+        ]
+        if is_edit:
+            book = Book.query.get_or_404(id)
+            fields[0]['value'] = book.title
+            fields[1]['value'] = book.author_id
+            fields[2]['value'] = book.category_id
+            fields[3]['value'] = book.publisher_id
+    elif entity == 'author':
+        entity_name = 'Author'
+        fields = [{'id': 'name', 'name': 'name', 'label': 'Name', 'type': 'text'}]
+        if is_edit:
+            author = Author.query.get_or_404(id)
+            fields[0]['value'] = author.name
+    elif entity == 'category':
+        entity_name = 'Category'
+        fields = [{'id': 'name', 'name': 'name', 'label': 'Name', 'type': 'text'}]
+        if is_edit:
+            category = Category.query.get_or_404(id)
+            fields[0]['value'] = category.name
+    elif entity == 'publisher':
+        entity_name = 'Publisher'
+        fields = [{'id': 'name', 'name': 'name', 'label': 'Name', 'type': 'text'}]
+        if is_edit:
+            publisher = Publisher.query.get_or_404(id)
+            fields[0]['value'] = publisher.name
+    else:
+        return "Unknown entity", 404
+
     if request.method == 'POST':
-        old_title = book.title
-        book.title = request.form['title']
-        book.author_id = request.form['author_id']
-        book.category_id = request.form['category_id']
-        book.publisher_id = request.form['publisher_id']
+        data = {field['name']: request.form[field['name']] for field in fields}
+        if is_edit:
+            if entity == 'book':
+                book.title = data['title']
+                book.author_id = data['author_id']
+                book.category_id = data['category_id']
+                book.publisher_id = data['publisher_id']
+            elif entity == 'author':
+                author.name = data['name']
+            elif entity == 'category':
+                category.name = data['name']
+            elif entity == 'publisher':
+                publisher.name = data['name']
+        else:
+            if entity == 'book':
+                db.session.add(Book(**data))
+            elif entity == 'author':
+                db.session.add(Author(**data))
+            elif entity == 'category':
+                db.session.add(Category(**data))
+            elif entity == 'publisher':
+                db.session.add(Publisher(**data))
         db.session.commit()
-        app.logger.info(f"Updated book from '{old_title}' to '{book.title}'.")
         return redirect(url_for('index'))
 
-    authors = Author.query.all()
-    categories = Category.query.all()
-    publishers = Publisher.query.all()
-    app.logger.info(f"Rendering edit_book page for book ID: {id}.")
-    return render_template('edit_book.html', book=book, authors=authors, categories=categories, publishers=publishers)
+    return render_template('edit_or_add.html', is_edit=is_edit, entity_name=entity_name, fields=fields)
+
+
 
 
 @app.route('/delete_book/<int:id>', methods=['POST'])
@@ -116,6 +151,36 @@ def delete_book(id):
     db.session.commit()
     app.logger.info(f"Deleted book: {book.title} with ID: {id}.")
     return redirect(url_for('index'))
+
+
+@app.route('/delete_author/<int:id>', methods=['POST'])
+def delete_author(id):
+    author = Author.query.get_or_404(id)
+    for book in author.books:
+        db.session.delete(book)
+    db.session.delete(author)
+    db.session.commit()
+    return redirect(url_for('index'))
+
+
+@app.route('/delete_category/<int:id>', methods=['POST'])
+def delete_category(id):
+    category = Category.query.get_or_404(id)
+    for book in category.books:
+        db.session.delete(book)
+    db.session.delete(category)
+    db.session.commit()
+    return redirect(url_for('index'))
+
+@app.route('/delete_publisher/<int:id>', methods=['POST'])
+def delete_publisher(id):
+    publisher = Publisher.query.get_or_404(id)
+    for book in publisher.books:
+        db.session.delete(book)
+    db.session.delete(publisher)
+    db.session.commit()
+    return redirect(url_for('index'))
+
 
 
 if __name__ == '__main__':

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ 'Edit' if is_edit else 'Add' }} {{ entity_name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>{{ 'Edit' if is_edit else 'Add' }} {{ entity_name }}</h1>
+    <form method="POST">
+        {% for field in fields %}
+            <label for="{{ field['id'] }}">{{ field['label'] }}:</label>
+            {% if field['type'] == 'select' %}
+                <select id="{{ field['id'] }}" name="{{ field['name'] }}">
+                    {% for option in field['options'] %}
+                        <option value="{{ option['id'] }}" {% if option['id'] == field.get('value') %}selected{% endif %}>
+                            {{ option['name'] }}
+                        </option>
+                    {% endfor %}
+                </select>
+            {% else %}
+                <input type="{{ field['type'] }}" id="{{ field['id'] }}" name="{{ field['name'] }}"
+                       value="{{ field.get('value', '') }}" required>
+            {% endif %}
+            <br>
+        {% endfor %}
+        <button type="submit">{{ 'Update' if is_edit else 'Add' }}</button>
+    </form>
+    <a href="{{ url_for('index') }}">Back to Index</a>
+</body>
+</html>

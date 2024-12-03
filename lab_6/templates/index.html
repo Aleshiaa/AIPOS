@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Library</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
     <h1>Books</h1>
@@ -13,10 +14,52 @@
                 <form action="{{ url_for('delete_book', id=book.id) }}" method="POST" style="display:inline;">
                     <button type="submit">Delete</button>
                 </form>
-                <a href="{{ url_for('edit_book', id=book.id) }}">Edit</a>
+                <a href="{{ url_for('edit_or_add_entity', entity='book', id=book.id) }}">Edit</a>
             </li>
         {% endfor %}
     </ul>
-    <a href="{{ url_for('add_book') }}">Add a Book</a>
+    <a href="{{ url_for('edit_or_add_entity', entity='book') }}">Add a Book</a>
+
+<h1>Authors</h1>
+<ul>
+    {% for author in authors %}
+        <li>
+            {{ author.name }}
+            <form action="{{ url_for('delete_author', id=author.id) }}" method="POST" style="display:inline;">
+                <button type="submit">Delete</button>
+            </form>
+            <a href="{{ url_for('edit_or_add_entity', entity='author', id=author.id) }}">Edit</a>
+        </li>
+    {% endfor %}
+</ul>
+<a href="{{ url_for('edit_or_add_entity', entity='author') }}">Add an Author</a>
+
+<h1>Categories</h1>
+<ul>
+    {% for category in categories %}
+        <li>
+            {{ category.name }}
+            <form action="{{ url_for('delete_category', id=category.id) }}" method="POST" style="display:inline;">
+                <button type="submit">Delete</button>
+            </form>
+            <a href="{{ url_for('edit_or_add_entity', entity='category', id=category.id) }}">Edit</a>
+        </li>
+    {% endfor %}
+</ul>
+<a href="{{ url_for('edit_or_add_entity', entity='category') }}">Add a Category</a>
+
+<h1>Publishers</h1>
+<ul>
+    {% for publisher in publishers %}
+        <li>
+            {{ publisher.name }}
+            <form action="{{ url_for('delete_publisher', id=publisher.id) }}" method="POST" style="display:inline;">
+                <button type="submit">Delete</button>
+            </form>
+            <a href="{{ url_for('edit_or_add_entity', entity='publisher', id=publisher.id) }}">Edit</a>
+        </li>
+    {% endfor %}
+</ul>
+<a href="{{ url_for('edit_or_add_entity', entity='publisher') }}">Add a Publisher</a>
 </body>
 </html>
