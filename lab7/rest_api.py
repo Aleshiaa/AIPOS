@@ -35,7 +35,7 @@ class Book(db.Model):
     publisher = db.relationship('Publisher', backref='books')
 
 
-@app.route('/authors', methods=['GET', 'POST'])
+@app.route('/author', methods=['GET', 'POST'])
 def authors():
     if request.method == 'POST':
         data = request.json
@@ -48,7 +48,7 @@ def authors():
     return jsonify([{'id': author.id, 'name': author.name} for author in authors])
 
 
-@app.route('/categories', methods=['GET', 'POST'])
+@app.route('/category', methods=['GET', 'POST'])
 def categories():
     if request.method == 'POST':
         data = request.json
@@ -61,7 +61,7 @@ def categories():
     return jsonify([{'id': category.id, 'name': category.name} for category in categories])
 
 
-@app.route('/publishers', methods=['GET', 'POST'])
+@app.route('/publisher', methods=['GET', 'POST'])
 def publishers():
     if request.method == 'POST':
         data = request.json
@@ -74,7 +74,7 @@ def publishers():
     return jsonify([{'id': publisher.id, 'name': publisher.name} for publisher in publishers])
 
 
-@app.route('/books', methods=['GET', 'POST'])
+@app.route('/book', methods=['GET', 'POST'])
 def books():
     if request.method == 'POST':
         data = request.json
@@ -98,7 +98,7 @@ def books():
     } for book in books])
 
 
-@app.route('/books/<int:id>', methods=['GET', 'PUT'])
+@app.route('/book/<int:id>', methods=['GET', 'PUT', 'DELETE'])
 def book_detail(id):
     book = Book.query.get_or_404(id)
 
@@ -120,13 +120,74 @@ def book_detail(id):
         db.session.commit()
         return jsonify({'message': 'Book updated successfully'}), 200
 
+    if request.method == 'DELETE':
+        db.session.delete(book)
+        db.session.commit()
+        return jsonify({'message': 'Book deleted successfully'}), 200
 
-@app.route('/books/<int:id>', methods=['DELETE'])
-def delete_book(id):
-    book = Book.query.get_or_404(id)
-    db.session.delete(book)
-    db.session.commit()
-    return jsonify({'message': 'Book deleted successfully'}), 200
+
+@app.route('/author/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+def author_detail(id):
+    author = Author.query.get_or_404(id)
+
+    if request.method == 'GET':
+        return jsonify({'id': author.id, 'name': author.name})
+
+    if request.method == 'PUT':
+        data = request.json
+        author.name = data['name']
+        db.session.commit()
+        return jsonify({'message': 'Author updated successfully'}), 200
+
+    if request.method == 'DELETE':
+        for book in author.books:
+            db.session.delete(book)
+        db.session.delete(author)
+        db.session.commit()
+        return jsonify({'message': 'Author deleted successfully'}), 200
+
+
+@app.route('/category/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+def category_detail(id):
+    category = Category.query.get_or_404(id)
+
+    if request.method == 'GET':
+        return jsonify({'id': category.id, 'name': category.name})
+
+    if request.method == 'PUT':
+        data = request.json
+        category.name = data['name']
+        db.session.commit()
+        return jsonify({'message': 'Category updated successfully'}), 200
+
+    if request.method == 'DELETE':
+        for book in category.books:
+            db.session.delete(book)
+        db.session.delete(category)
+        db.session.commit()
+        return jsonify({'message': 'Category deleted successfully'}), 200
+
+
+@app.route('/publisher/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+def publisher_detail(id):
+    publisher = Publisher.query.get_or_404(id)
+
+    if request.method == 'GET':
+        return jsonify({'id': publisher.id, 'name': publisher.name})
+
+    if request.method == 'PUT':
+        data = request.json
+        publisher.name = data['name']
+        db.session.commit()
+        return jsonify({'message': 'Publisher updated successfully'}), 200
+
+    if request.method == 'DELETE':
+        for book in publisher.books:
+            db.session.delete(book)
+        db.session.delete(publisher)
+        db.session.commit()
+        return jsonify({'message': 'Publisher deleted successfully'}), 200
+
 
 
 if __name__ == '__main__':
